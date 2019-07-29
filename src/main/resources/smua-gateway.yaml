@@ -1,0 +1,28 @@
+name: "Test User"
+description: "30"
+start: "dirListing"
+steps:
+- name: "dirListing"
+  description: "list directories"
+  processorAttributes:
+    type: "CommandProcessor"
+    description: "process a command"
+    command: "cmd /c dir"
+  on_success: "checkLockFile"
+  on_failure: "error"
+- name: "checkLockFile"
+  description: "check file existence"
+  processorAttributes:
+    type: "CheckFileProcessor"
+    description: "check file existence"
+    command: "src/main/resources/log4j.properties"
+  on_success: "checkLockFile2"
+  on_failure: "checkLockFile2"
+- name: "checkLockFile2"
+  description: "check file existence 2"
+  processorAttributes:
+    type: "CheckFileProcessor"
+    description: "check file existence"
+    command: "src/main/resources/log4j.properties"
+  on_success: "end"
+  on_failure: "error"
