@@ -1,7 +1,7 @@
-package com.trite.apps.flowbot.devices.processor;
+package com.trite.apps.flowbot.processor;
 
-import com.trite.apps.flowbot.devices.result.BooleanResult;
-import com.trite.apps.flowbot.devices.result.Result;
+import com.trite.apps.flowbot.result.BooleanResult;
+import com.trite.apps.flowbot.result.Result;
 
 import java.io.File;
 import java.util.HashMap;
@@ -35,12 +35,19 @@ public class CheckFileProcessor extends Processor {
 
         try {
             File f = new File(this.getPath());
-            result = f.exists();
-            resultAttributes.put(stepName + "-outcome", "success");
+            if(f.exists()){
+                result = true;
+                resultAttributes.put(stepName + "-outcome", "success");
+            } else {
+                result = false;
+                resultAttributes.put(stepName + "-outcome", "failure");
+                resultAttributes.put(stepName + "-outcome-message", "the file " + this.getPath() + " does not exist!");
+            }
         }
         catch (Exception e) {
             result = false;
             resultAttributes.put(stepName + "-outcome", "failure");
+            resultAttributes.put(stepName + "-outcome-message", e.getMessage());
         }
 
         r.setResult(result);

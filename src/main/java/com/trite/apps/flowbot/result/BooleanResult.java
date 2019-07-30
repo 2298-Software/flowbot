@@ -1,4 +1,4 @@
-package com.trite.apps.flowbot.devices.result;
+package com.trite.apps.flowbot.result;
 
 public class BooleanResult extends Result {
     private boolean result;

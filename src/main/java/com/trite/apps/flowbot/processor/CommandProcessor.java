@@ -1,7 +1,7 @@
-package com.trite.apps.flowbot.devices.processor;
+package com.trite.apps.flowbot.processor;
 
-import com.trite.apps.flowbot.devices.result.HashMapResult;
-import com.trite.apps.flowbot.devices.result.Result;
+import com.trite.apps.flowbot.result.HashMapResult;
+import com.trite.apps.flowbot.result.Result;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -62,7 +62,6 @@ public class CommandProcessor extends Processor {
 
         }
         catch (IOException e) {
-            System.out.println("exception happened - here's what I know: ");
             resultAttributes.put(stepName + "-outcomeMessage", e.getMessage());
             resultAttributes.put(stepName + "-outcome", "failure");
         }

@@ -1,7 +1,7 @@
-package com.trite.apps.flowbot.devices.processor;
+package com.trite.apps.flowbot.processor;
 
-import com.trite.apps.flowbot.devices.Runnable;
-import com.trite.apps.flowbot.devices.result.Result;
+import com.trite.apps.flowbot.Runnable;
+import com.trite.apps.flowbot.result.Result;
 
 public class Processor implements Runnable {
 

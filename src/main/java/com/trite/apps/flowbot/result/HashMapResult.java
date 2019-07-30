@@ -1,4 +1,4 @@
-package com.trite.apps.flowbot.devices.result;
+package com.trite.apps.flowbot.result;
 
 import java.util.HashMap;
 

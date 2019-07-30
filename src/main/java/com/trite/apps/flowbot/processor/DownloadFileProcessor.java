@@ -1,7 +1,7 @@
-package com.trite.apps.flowbot.devices.processor;
+package com.trite.apps.flowbot.processor;
 
-import com.trite.apps.flowbot.devices.result.BooleanResult;
-import com.trite.apps.flowbot.devices.result.Result;
+import com.trite.apps.flowbot.result.BooleanResult;
+import com.trite.apps.flowbot.result.Result;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -61,6 +61,7 @@ public class DownloadFileProcessor extends Processor {
         catch (Exception e) {
             result = false;
             resultAttributes.put(stepName + "-outcome", "failure");
+            resultAttributes.put(stepName + "-outcome-message", e.getMessage());
         }
 
         r.setResult(result);

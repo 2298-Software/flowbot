@@ -1,4 +1,4 @@
-package com.trite.apps.flowbot.devices;
+package com.trite.apps.flowbot;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
