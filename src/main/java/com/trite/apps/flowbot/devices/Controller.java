@@ -4,6 +4,7 @@ import java.io.File;
 
 import com.trite.apps.flowbot.devices.processor.CheckFileProcessor;
 import com.trite.apps.flowbot.devices.processor.CommandProcessor;
+import com.trite.apps.flowbot.devices.processor.DownloadFileProcessor;
 import com.trite.apps.flowbot.devices.result.BooleanResult;
 import com.trite.apps.flowbot.devices.result.Result;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
@@ -59,6 +60,19 @@ public class Controller {
                     results[stepIdx] = r;
 
                     br.getResultAttributes().forEach((key, value) -> System.out.println(key + " = " + value));
+                    break;
+                case "DownloadFileProcessor" :
+                    DownloadFileProcessor dfp = new DownloadFileProcessor();
+                    BooleanResult dfpbr;
+
+                    dfp.setLocalPath(currentStep.getProcessorAttributes().get("localPath"));
+                    dfp.setRemotePath(currentStep.getProcessorAttributes().get("remotePath"));
+
+                    dfpbr = dfp.run(currentStep.getName(), results);
+                    stepSuccess = dfpbr.getResultAttributes().get(currentStep.getName() + "-outcome").equals("success");
+                    results[stepIdx] = r;
+
+                    dfpbr.getResultAttributes().forEach((key, value) -> System.out.println(key + " = " + value));
                     break;
         }
             
