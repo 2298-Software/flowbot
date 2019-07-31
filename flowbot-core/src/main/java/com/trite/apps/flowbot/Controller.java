@@ -1,17 +1,16 @@
 package com.trite.apps.flowbot;
 
-import java.io.File;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.trite.apps.flowbot.exception.ProcessorNotImplementedException;
 import com.trite.apps.flowbot.exception.StepFailedException;
 import com.trite.apps.flowbot.processor.*;
-import com.trite.apps.flowbot.processor.CheckFileProcessor;
 import com.trite.apps.flowbot.result.BooleanResult;
 import com.trite.apps.flowbot.result.Result;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+
+import java.io.File;
 
 public class Controller {
 

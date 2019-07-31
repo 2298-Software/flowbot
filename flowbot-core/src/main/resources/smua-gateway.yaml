@@ -7,7 +7,7 @@ steps:
   processorAttributes:
     type: "CheckFileProcessor"
     description: "check file existence"
-    path: "src/main/resources/log4j.properties"
+    path: "flowbot-core/src/main/resources/log4j.properties"
   on_success: "downloadPackage"
   on_failure: "error"
 - name: "downloadPackage"
