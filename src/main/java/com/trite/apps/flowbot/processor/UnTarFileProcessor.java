@@ -3,11 +3,14 @@ package com.trite.apps.flowbot.processor;
 import com.trite.apps.flowbot.result.BooleanResult;
 import com.trite.apps.flowbot.result.Result;
 import org.apache.commons.compress.archivers.ArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
+import org.apache.commons.compress.utils.IOUtils;
 
 import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -50,26 +53,24 @@ public class UnTarFileProcessor extends Processor {
         String s;
 
         try {
-            File f = new File(this.outputPath);
-            if(!f.exists()){
-                f.mkdir();
-            }
-
             Path pathInput = Paths.get(this.tarPath);
-            Path pathOutput = Paths.get(f.getParent());
+            Path pathOutput = Paths.get(this.outputPath);
 
             TarArchiveInputStream tararchiveinputstream = new TarArchiveInputStream(new GzipCompressorInputStream(new BufferedInputStream( Files.newInputStream(pathInput))));
 
-            ArchiveEntry archiveentry = null;
-            while( (archiveentry = tararchiveinputstream.getNextEntry()) != null ) {
-                Path pathEntryOutput = pathOutput.resolve( archiveentry.getName() );
-                if( archiveentry.isDirectory() ) {
-                    if( !Files.exists( pathEntryOutput ) )
-                        Files.createDirectory( pathEntryOutput );
+                TarArchiveEntry entry;
+                while ((entry = tararchiveinputstream.getNextTarEntry()) != null) {
+                    if (entry.isDirectory()) {
+                        continue;
+                    }
+                    File curfile = new File(outputPath, entry.getName());
+                    File parent = curfile.getParentFile();
+                    if (!parent.exists()) {
+                        parent.mkdirs();
+                    }
+                    IOUtils.copy(tararchiveinputstream, new FileOutputStream(curfile));
                 }
-                else
-                    Files.copy( tararchiveinputstream, pathEntryOutput );
-            }
+
 
             tararchiveinputstream.close();
 

@@ -25,6 +25,6 @@ steps:
     type: "UnTarFileProcessor"
     description: "untar the package"
     tarPath: "target/minifi-toolkit-0.5.0-bin.tar.gz"
-    outputPath: "target/minifi-toolkit-0.5.0/"
+    outputPath: "target/"
   on_success: "end"
   on_failure: "error"

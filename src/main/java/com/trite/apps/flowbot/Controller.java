@@ -5,6 +5,7 @@ import java.io.File;
 import com.trite.apps.flowbot.exception.ProcessorNotImplementedException;
 import com.trite.apps.flowbot.exception.StepFailedException;
 import com.trite.apps.flowbot.processor.*;
+import com.trite.apps.flowbot.processor.CheckFileProcessor;
 import com.trite.apps.flowbot.result.BooleanResult;
 import com.trite.apps.flowbot.result.Result;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
