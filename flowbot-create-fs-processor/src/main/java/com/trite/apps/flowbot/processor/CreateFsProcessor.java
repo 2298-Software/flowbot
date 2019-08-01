@@ -1,17 +1,23 @@
 package com.trite.apps.flowbot.processor;
 
 import com.trite.apps.flowbot.exception.MissingOrInvalidAttributeException;
+import com.trite.apps.flowbot.processorcore.Processor;
 import com.trite.apps.flowbot.result.BooleanResult;
 import com.trite.apps.flowbot.result.Result;
 
 import java.io.File;
 import java.util.HashMap;
-import java.util.MissingFormatArgumentException;
 
 public class CreateFsProcessor extends Processor {
     private String path;
     private String objectType;
     private String result;
+
+    public CreateFsProcessor(HashMap<String, String> processorAttribues) {
+        super(processorAttribues);
+        this.setPath(processorAttribues.get("path"));
+        this.setObjectType(processorAttribues.get("objectType"));
+    }
 
     public String getObjectType() {
         return objectType;

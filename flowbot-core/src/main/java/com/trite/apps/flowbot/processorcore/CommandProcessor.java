@@ -1,4 +1,4 @@
-package com.trite.apps.flowbot.processor;
+package com.trite.apps.flowbot.processorcore;
 
 import com.trite.apps.flowbot.result.HashMapResult;
 import com.trite.apps.flowbot.result.Result;
@@ -11,6 +11,12 @@ import java.util.HashMap;
 public class CommandProcessor extends Processor {
     private String command;
     private String result;
+
+    public CommandProcessor(HashMap<String, String> processorAttribues) {
+        super(processorAttribues);
+        this.setCommand(processorAttribues.get("command"));
+
+    }
 
     public String getCommand() {
         return command;

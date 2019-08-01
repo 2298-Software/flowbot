@@ -1,4 +1,6 @@
-import com.trite.apps.flowbot.processor.Processor;
+package com.trite.apps.flowbot.processor;
+
+import com.trite.apps.flowbot.processorcore.Processor;
 import com.trite.apps.flowbot.result.BooleanResult;
 import com.trite.apps.flowbot.result.Result;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
@@ -18,6 +20,12 @@ public class UnTarFileProcessor extends Processor {
     private String tarPath;
     private String outputPath;
     private String result;
+
+    public UnTarFileProcessor(HashMap<String, String> processorAttribues) {
+        super(processorAttribues);
+        this.setTarPath(processorAttribues.get("tarPath"));
+        this.setOutputPath(processorAttribues.get("outputPath"));
+    }
 
     public String getTarPath() {
         return tarPath;
@@ -44,7 +52,7 @@ public class UnTarFileProcessor extends Processor {
     }
 
     public BooleanResult run(String stepName, Result[] stuff) {
-        System.out.println("Running UnTarFileProcessor");
+        System.out.println("Running com.trite.apps.flowbot.processor.UnTarFileProcessor");
         BooleanResult r = new BooleanResult();
         HashMap<String, String> resultAttributes = new HashMap<>();
         Boolean result;

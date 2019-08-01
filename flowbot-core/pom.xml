@@ -24,17 +24,17 @@
         </dependency>
         <dependency>
             <groupId>com.trite</groupId>
+            <artifactId>flowbot-untar-processor</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.trite</groupId>
             <artifactId>flowbot-create-fs-processor</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.trite</groupId>
             <artifactId>flowbot-download-file-processor</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>com.trite</groupId>
-            <artifactId>flowbot-untar-processor</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
@@ -69,12 +69,7 @@
         </dependency>
         <dependency>
             <groupId>com.trite</groupId>
-            <artifactId>untar-processor</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>com.trite</groupId>
-            <artifactId>untar-processor</artifactId>
+            <artifactId>flowbot-untar-processor</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
     </dependencies>

@@ -1,5 +1,6 @@
 package com.trite.apps.flowbot.processor;
 
+import com.trite.apps.flowbot.processorcore.Processor;
 import com.trite.apps.flowbot.result.BooleanResult;
 import com.trite.apps.flowbot.result.Result;
 
@@ -13,6 +14,12 @@ public class DownloadFileProcessor extends Processor {
     private String remotePath;
     private String localPath;
     private String result;
+
+    public DownloadFileProcessor(HashMap<String, String> processorAttribues) {
+        super(processorAttribues);
+        this.setLocalPath(processorAttribues.get("localPath"));
+        this.setRemotePath(processorAttribues.get("remotePath"));
+    }
 
     public String getRemotePath() {
         return remotePath;

@@ -16,7 +16,7 @@ steps:
     type: "DownloadFileProcessor"
     description: "downloads tar file"
     remotePath: "https://www-eu.apache.org/dist/nifi/minifi/0.5.0/minifi-toolkit-0.5.0-bin.tar.gz"
-    localPath: "target/minifi-toolkit-0.5.0-bin.tar.gz"
+    localPath: "flowbot-core/target/minifi-toolkit-0.5.0-bin.tar.gz"
   on_success: "untarPackage"
   on_failure: "error"
 - name: "untarPackage"
@@ -24,7 +24,7 @@ steps:
   processorAttributes:
     type: "UnTarFileProcessor"
     description: "untar the package"
-    tarPath: "target/minifi-toolkit-0.5.0-bin.tar.gz"
-    outputPath: "target/"
+    tarPath: "flowbot-core/target/minifi-toolkit-0.5.0-bin.tar.gz"
+    outputPath: "flowbot-core/target/"
   on_success: "end"
   on_failure: "error"

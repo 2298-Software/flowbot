@@ -1,5 +1,6 @@
-package com.trite.apps.flowbot;
+package com.trite.apps.flowbot.processorcore;
 
+import com.trite.apps.flowbot.result.BooleanResult;
 import com.trite.apps.flowbot.result.Result;
 
 /**

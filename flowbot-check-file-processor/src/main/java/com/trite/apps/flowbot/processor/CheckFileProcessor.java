@@ -1,5 +1,6 @@
 package com.trite.apps.flowbot.processor;
 
+import com.trite.apps.flowbot.processorcore.Processor;
 import com.trite.apps.flowbot.result.BooleanResult;
 import com.trite.apps.flowbot.result.Result;
 
@@ -9,6 +10,11 @@ import java.util.HashMap;
 public class CheckFileProcessor extends Processor {
     private String path;
     private String result;
+
+    public CheckFileProcessor(HashMap<String, String> processorAttribues) {
+        super(processorAttribues);
+        this.setPath(processorAttribues.get("path"));
+    }
 
     public String getPath() {
         return path;
@@ -26,7 +32,8 @@ public class CheckFileProcessor extends Processor {
         this.result = result;
     }
 
-    public BooleanResult run(String stepName, Result[] stuff) {
+    @Override
+    public Result run(String stepName, Result[] stuff) {
         System.out.println("Running CheckFileProcessor");
         BooleanResult r = new BooleanResult();
         HashMap<String, String> resultAttributes = new HashMap<>();

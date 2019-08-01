@@ -4,16 +4,21 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.trite.apps.flowbot.exception.ProcessorNotImplementedException;
 import com.trite.apps.flowbot.exception.StepFailedException;
+
 import com.trite.apps.flowbot.processor.*;
+import com.trite.apps.flowbot.processorcore.*;
+import com.trite.apps.flowbot.processorcore.CommandProcessor;
 import com.trite.apps.flowbot.result.BooleanResult;
+import com.trite.apps.flowbot.result.HashMapResult;
 import com.trite.apps.flowbot.result.Result;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
 import java.io.File;
+import java.lang.reflect.Constructor;
+import java.util.HashMap;
 
 public class Controller {
-
     public static void main(String args[]) throws Exception {
         ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
 
@@ -36,81 +41,45 @@ public class Controller {
                 currentStep = flow.getNextStep(currentStep);
             }
 
-            switch (currentStep.getProcessorAttributes().get("type")) {
-                case "CommandProcessor":
-                    CommandProcessor p = new CommandProcessor();
-                    p.setCommand(currentStep.getProcessorAttributes().get("command"));
-                    Result hmr;
+            String processorNameString = currentStep.getProcessorAttributes().get("type");
+            Class clazz = Class.forName("com.trite.apps.flowbot.processor." + processorNameString);
+            Constructor constructor = clazz.getConstructor(HashMap.class);
+            Object o =  constructor.newInstance(currentStep.getProcessorAttributes());
+            Processor p;
 
-                    hmr = p.run(currentStep.getName(), results);
-                    stepSuccess = hmr.getResultAttributes().get(currentStep.getName() + "-outcome").equals("success");
-                    stepMsg = hmr.getResultAttributes().get(currentStep.getName() + "-outcome-message");
+            System.out.println("class " + clazz.getName());
 
-                    results[stepIdx] = r;
+            if(o.getClass().isInstance(CommandProcessor.class)){
+                p =((CommandProcessor) o);
+            }else if(CheckFileProcessor.class.isInstance(o)){
+                p = ((CheckFileProcessor) o);
+            }else if(CreateFsProcessor.class.isInstance(o)){
+                p = (CreateFsProcessor) o;
+            }else  if(DownloadFileProcessor.class.isInstance(o)){
+                p = (DownloadFileProcessor) o;
+            }else  if(UnTarFileProcessor.class.isInstance(o)){
+                p = (UnTarFileProcessor) o;
+            } else {
+                throw new ProcessorNotImplementedException(processorNameString + " not yet implemented!");
+            }
 
-                    hmr.getResultAttributes().forEach((key, value) -> System.out.println(key + " = " + value));
-                    break;
-                case "CheckFileProcessor" :
-                    CheckFileProcessor cfp = new CheckFileProcessor();
-                    BooleanResult br;
+            r = p.run(currentStep.getName(), results);
 
-                    cfp.setPath(currentStep.getProcessorAttributes().get("path"));
-                    br = cfp.run(currentStep.getName(), results);
-                    stepSuccess = br.getResultAttributes().get(currentStep.getName() + "-outcome").equals("success");
-                    stepMsg = br.getResultAttributes().get(currentStep.getName() + "-outcome-message");
+            if(HashMapResult.class.isInstance(r)){
+                Result hmr = r;
+                stepSuccess = hmr.getResultAttributes().get(currentStep.getName() + "-outcome").equals("success");
+                stepMsg = hmr.getResultAttributes().get(currentStep.getName() + "-outcome-message");
+            } else if(BooleanResult.class.isInstance(r)){
+                BooleanResult br = (BooleanResult)r;
+                stepSuccess = br.getResultAttributes().get(currentStep.getName() + "-outcome").equals("success");
+                stepMsg = br.getResultAttributes().get(currentStep.getName() + "-outcome-message");
+            } else {
+                throw new Exception("result type not implemented!");
+            }
 
-                    results[stepIdx] = r;
+            r.getResultAttributes().forEach((key, value) -> System.out.println(key + " = " + value));
+            results[stepIdx] = r;
 
-                    br.getResultAttributes().forEach((key, value) -> System.out.println(key + " = " + value));
-                    break;
-                case "CreateFsProcessor" :
-                    CreateFsProcessor cfsp = new CreateFsProcessor();
-                    BooleanResult cfspbr;
-
-                    cfsp.setPath(currentStep.getProcessorAttributes().get("path"));
-                    cfsp.setObjectType(currentStep.getProcessorAttributes().get("objectType"));
-
-                    cfspbr = cfsp.run(currentStep.getName(), results);
-                    stepSuccess = cfspbr.getResultAttributes().get(currentStep.getName() + "-outcome").equals("success");
-                    stepMsg = cfspbr.getResultAttributes().get(currentStep.getName() + "-outcome-message");
-
-                    results[stepIdx] = r;
-
-                    cfspbr.getResultAttributes().forEach((key, value) -> System.out.println(key + " = " + value));
-                    break;
-                case "DownloadFileProcessor" :
-                    DownloadFileProcessor dfp = new DownloadFileProcessor();
-                    BooleanResult dfpbr;
-
-                    dfp.setLocalPath(currentStep.getProcessorAttributes().get("localPath"));
-                    dfp.setRemotePath(currentStep.getProcessorAttributes().get("remotePath"));
-
-                    dfpbr = dfp.run(currentStep.getName(), results);
-                    stepSuccess = dfpbr.getResultAttributes().get(currentStep.getName() + "-outcome").equals("success");
-                    stepMsg = dfpbr.getResultAttributes().get(currentStep.getName() + "-outcome-message");
-
-                    results[stepIdx] = r;
-
-                    dfpbr.getResultAttributes().forEach((key, value) -> System.out.println(key + " = " + value));
-                    break;
-                case "UnTarFileProcessor" :
-                    UnTarFileProcessor utfp = new UnTarFileProcessor();
-                    BooleanResult utpbr;
-
-                    utfp.setTarPath(currentStep.getProcessorAttributes().get("tarPath"));
-                    utfp.setOutputPath(currentStep.getProcessorAttributes().get("outputPath"));
-
-                    utpbr = utfp.run(currentStep.getName(), results);
-                    stepSuccess = utpbr.getResultAttributes().get(currentStep.getName() + "-outcome").equals("success");
-                    stepMsg = utpbr.getResultAttributes().get(currentStep.getName() + "-outcome-message");
-
-                    results[stepIdx] = r;
-
-                    utpbr.getResultAttributes().forEach((key, value) -> System.out.println(key + " = " + value));
-                    break;
-                default: throw new ProcessorNotImplementedException(currentStep.getProcessorAttributes().get("type") + " not yet implemented!");
-        }
-            
             if(currentStep.getOn_success().equals("end")){
                 break;
             } 
@@ -122,7 +91,6 @@ public class Controller {
             currentStep.setStatus(1);
 
             System.out.println(ReflectionToStringBuilder.toString(currentStep, ToStringStyle.MULTI_LINE_STYLE));
-            //System.out.println(ReflectionToStringBuilder.toString(currentStep.getProcessorAttributes(), ToStringStyle.MULTI_LINE_STYLE));
 
         }
 
