@@ -3,8 +3,10 @@ package com.trite.apps.flowbot.processorcore;
 import com.trite.apps.flowbot.result.Result;
 
 import java.util.HashMap;
+import org.apache.log4j.Logger;
 
 public class Processor{
+    public Logger logger = Logger.getLogger(this.getClass().getName());
 
     private String name;
     private String description;
@@ -12,6 +14,7 @@ public class Processor{
     private Result r;
 
     public Processor(HashMap<String, String> processorAttribues) {
+        logger.info("instantiating " + this.getClass().getSimpleName());
         this.processorAttribues = processorAttribues;
     }
 
@@ -40,7 +43,7 @@ public class Processor{
     }
 
     public Result run(String stepName, Result[] stuff) {
-        System.out.println("running base class run method");
+        logger.info("running " + this.getClass().getSimpleName());
         return r;
     }
 

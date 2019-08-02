@@ -35,7 +35,7 @@ public class CommandProcessor extends Processor {
     }
 
     public HashMapResult run(String stepName, Result[] stuff) {
-        System.out.println("Running CommandProcessor");
+        logger.info("running " + this.getClass().getSimpleName());
         HashMap<String, String> result = new HashMap<>();
         HashMap<String, String> resultAttributes = new HashMap<>();
 

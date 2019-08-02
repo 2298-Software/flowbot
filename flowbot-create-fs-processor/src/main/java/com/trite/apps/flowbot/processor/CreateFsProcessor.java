@@ -44,7 +44,7 @@ public class CreateFsProcessor extends Processor {
     }
 
     public BooleanResult run(String stepName, Result[] stuff) {
-        System.out.println("Running CreateFsProcessor");
+        logger.info("running " + this.getClass().getSimpleName());
         BooleanResult r = new BooleanResult();
         HashMap<String, String> resultAttributes = new HashMap<>();
         Boolean result;

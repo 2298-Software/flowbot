@@ -52,7 +52,7 @@ public class UnTarFileProcessor extends Processor {
     }
 
     public BooleanResult run(String stepName, Result[] stuff) {
-        System.out.println("Running com.trite.apps.flowbot.processor.UnTarFileProcessor");
+        logger.info("running " + this.getClass().getSimpleName());
         BooleanResult r = new BooleanResult();
         HashMap<String, String> resultAttributes = new HashMap<>();
         Boolean result;
@@ -60,7 +60,6 @@ public class UnTarFileProcessor extends Processor {
 
         try {
             Path pathInput = Paths.get(this.tarPath);
-            Path pathOutput = Paths.get(this.outputPath);
 
             TarArchiveInputStream tararchiveinputstream = new TarArchiveInputStream(new GzipCompressorInputStream(new BufferedInputStream( Files.newInputStream(pathInput))));
 

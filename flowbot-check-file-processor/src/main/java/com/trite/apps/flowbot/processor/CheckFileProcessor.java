@@ -6,14 +6,17 @@ import com.trite.apps.flowbot.result.Result;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.List;
 
 public class CheckFileProcessor extends Processor {
     private String path;
+    private String desiredOutcome;
     private String result;
 
     public CheckFileProcessor(HashMap<String, String> processorAttribues) {
         super(processorAttribues);
         this.setPath(processorAttribues.get("path"));
+        this.setDesiredOutcome(processorAttribues.get("desiredOutcome"));
     }
 
     public String getPath() {
@@ -34,21 +37,31 @@ public class CheckFileProcessor extends Processor {
 
     @Override
     public Result run(String stepName, Result[] stuff) {
-        System.out.println("Running CheckFileProcessor");
+        logger.info("running " + this.getClass().getSimpleName());
         BooleanResult r = new BooleanResult();
         HashMap<String, String> resultAttributes = new HashMap<>();
         Boolean result;
-        String s;
 
         try {
             File f = new File(this.getPath());
-            if(f.exists()){
+            if(f.exists() && this.getDesiredOutcome().equals("exists")) {
                 result = true;
                 resultAttributes.put(stepName + "-outcome", "success");
+            } else if(f.exists() && this.getDesiredOutcome().equals("not-exists")) {
+                result = false;
+                resultAttributes.put(stepName + "-outcome", "failure");
+                resultAttributes.put(stepName + "-outcome-message", "file does exist, but is desired to not exist: " + this.getPath());
+            } else  if(!f.exists() && this.desiredOutcome.equals("not-exists")) {
+                result = true;
+                resultAttributes.put(stepName + "-outcome", "success");
+            } else  if(!f.exists() && this.desiredOutcome.equals("exists")) {
+                    result = false;
+                    resultAttributes.put(stepName + "-outcome", "failure");
+                    resultAttributes.put(stepName + "-outcome-message", "file does not exist, but is desired to exist: " + this.getPath());
             } else {
                 result = false;
                 resultAttributes.put(stepName + "-outcome", "failure");
-                resultAttributes.put(stepName + "-outcome-message", "the file " + this.getPath() + " does not exist!");
+                resultAttributes.put(stepName + "-outcome-message", "unable to determine what happened!");
             }
         }
         catch (Exception e) {
@@ -63,4 +76,11 @@ public class CheckFileProcessor extends Processor {
     }
 
 
+    public String getDesiredOutcome() {
+        return desiredOutcome;
+    }
+
+    public void setDesiredOutcome(String desiredOutcome) {
+        this.desiredOutcome = desiredOutcome;
+    }
 }

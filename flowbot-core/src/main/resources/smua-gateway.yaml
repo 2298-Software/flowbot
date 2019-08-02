@@ -7,9 +7,10 @@ steps:
   processorAttributes:
     type: "CheckFileProcessor"
     description: "check file existence"
-    path: "flowbot-core/src/main/resources/log4j.properties"
+    path: "flowbot-core/src/main/resources/firstBoot.lock"
+    desiredOutcome: "not-exist"
   on_success: "downloadPackage"
-  on_failure: "error"
+  on_failure: "end"
 - name: "downloadPackage"
   description: "check file existence 2"
   processorAttributes:
@@ -26,5 +27,14 @@ steps:
     description: "untar the package"
     tarPath: "flowbot-core/target/minifi-toolkit-0.5.0-bin.tar.gz"
     outputPath: "flowbot-core/target/"
+  on_success: "createLockFile"
+  on_failure: "error"
+- name: "createLockFile"
+  description: "Create first boot lock file"
+  processorAttributes:
+    type: "CreateFsProcessor"
+    description: "processor to create lock file"
+    path: "flowbot-core/src/main/resources/firstBoot.lock"
+    objectType: "file"
   on_success: "end"
   on_failure: "error"

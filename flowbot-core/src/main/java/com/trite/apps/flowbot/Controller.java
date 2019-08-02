@@ -2,33 +2,44 @@ package com.trite.apps.flowbot;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.trite.apps.flowbot.exception.ProcessorNotImplementedException;
 import com.trite.apps.flowbot.exception.StepFailedException;
 
-import com.trite.apps.flowbot.processor.*;
-import com.trite.apps.flowbot.processorcore.*;
-import com.trite.apps.flowbot.processorcore.CommandProcessor;
 import com.trite.apps.flowbot.result.BooleanResult;
 import com.trite.apps.flowbot.result.HashMapResult;
 import com.trite.apps.flowbot.result.Result;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
+import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 import java.util.HashMap;
 
 public class Controller {
-    public static void main(String args[]) throws Exception {
-        ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+    static Logger logger = Logger.getLogger(Controller.class.getName());
 
-        String propFileName = args[0];
-        Flow flow = mapper.readValue(new File(propFileName), Flow.class);
-        System.out.println(ReflectionToStringBuilder.toString(flow, ToStringStyle.MULTI_LINE_STYLE));
+    public static void main(String args[]) throws Exception {
+        logger.info("Starting Flowbot Controller");
+
+        if(args.length != 1){
+            printUsage();
+            System.exit(1);
+        }
+
+        File configFile = new File(args[0]);
+        if(!configFile.exists()){
+            printUsage();
+            System.exit(1);
+        }
+
+        ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+        Flow flow = mapper.readValue(configFile, Flow.class);
+        logger.info(ReflectionToStringBuilder.toString(flow, ToStringStyle.MULTI_LINE_STYLE));
         Result results[] = new Result[flow.getSteps().size()];
-        Result r = new Result();
-        boolean stepSuccess = false;
-        String stepMsg = "no message";
+        Result r;
+        boolean stepSuccess;
+        String stepMsg;
         Step firstStep = flow.getSteps().get(0);
         Step currentStep = null;
 
@@ -45,28 +56,12 @@ public class Controller {
             Class clazz = Class.forName("com.trite.apps.flowbot.processor." + processorNameString);
             Constructor constructor = clazz.getConstructor(HashMap.class);
             Object o =  constructor.newInstance(currentStep.getProcessorAttributes());
-            Processor p;
+            Method m = clazz.getMethod("run", String.class, Result[].class);
 
-            System.out.println("class " + clazz.getName());
-
-            if(o.getClass().isInstance(CommandProcessor.class)){
-                p =((CommandProcessor) o);
-            }else if(CheckFileProcessor.class.isInstance(o)){
-                p = ((CheckFileProcessor) o);
-            }else if(CreateFsProcessor.class.isInstance(o)){
-                p = (CreateFsProcessor) o;
-            }else  if(DownloadFileProcessor.class.isInstance(o)){
-                p = (DownloadFileProcessor) o;
-            }else  if(UnTarFileProcessor.class.isInstance(o)){
-                p = (UnTarFileProcessor) o;
-            } else {
-                throw new ProcessorNotImplementedException(processorNameString + " not yet implemented!");
-            }
-
-            r = p.run(currentStep.getName(), results);
+            r = (Result)m.invoke(o, currentStep.getName(), results);
 
             if(HashMapResult.class.isInstance(r)){
-                Result hmr = r;
+                Result hmr = (HashMapResult)r;
                 stepSuccess = hmr.getResultAttributes().get(currentStep.getName() + "-outcome").equals("success");
                 stepMsg = hmr.getResultAttributes().get(currentStep.getName() + "-outcome-message");
             } else if(BooleanResult.class.isInstance(r)){
@@ -77,25 +72,32 @@ public class Controller {
                 throw new Exception("result type not implemented!");
             }
 
-            r.getResultAttributes().forEach((key, value) -> System.out.println(key + " = " + value));
+            r.getResultAttributes().forEach((key, value) -> logger.info(key + " = " + value));
             results[stepIdx] = r;
 
-            if(currentStep.getOn_success().equals("end")){
+            if(currentStep.getOn_success().equals("end") && stepSuccess){
+                logger.info("Flow has reached the end on step " + currentStep.getName());
                 break;
-            } 
+            }
 
-            if(!stepSuccess){
+            if(currentStep.getOn_failure().equals("end") && !stepSuccess){
+                logger.info("Flow has reached the end on step " + currentStep.getName());
+                break;
+            }
+
+            if(!stepSuccess && currentStep.getOn_failure().equals("error")){
                 throw new StepFailedException(currentStep.getName() + " failed with the following message: " + stepMsg);
             }
             stepIdx++;
             currentStep.setStatus(1);
 
-            System.out.println(ReflectionToStringBuilder.toString(currentStep, ToStringStyle.MULTI_LINE_STYLE));
-
+            logger.info(ReflectionToStringBuilder.toString(currentStep, ToStringStyle.MULTI_LINE_STYLE));
         }
+    }
 
-
-
+    private static void printUsage() {
+        logger.info("Failed to start Flowbot. Please provide the configuration yaml.");
+        logger.info("java flowbot.jar configFile.yaml");
     }
 
 }
