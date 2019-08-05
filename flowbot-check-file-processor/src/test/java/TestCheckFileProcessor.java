@@ -1,5 +1,4 @@
 import com.trite.apps.flowbot.processor.CheckFileProcessor;
-import com.trite.apps.flowbot.result.BooleanResult;
 import com.trite.apps.flowbot.result.Result;
 import org.junit.Test;
 

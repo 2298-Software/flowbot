@@ -16,6 +16,7 @@
         <module>flowbot-untar-processor</module>
         <module>flowbot-download-file-processor</module>
         <module>flowbot-processor-core</module>
+        <module>flowbot-s3-connector</module>
     </modules>
 
     <build>

@@ -45,7 +45,7 @@ public class DownloadFileProcessor extends Processor {
         this.result = result;
     }
 
-    public BooleanResult run(String stepName, Result[] stuff) {
+    public BooleanResult run(String stepName, Result[] flowResults) {
         logger.info("running " + this.getClass().getSimpleName());
         BooleanResult r = new BooleanResult();
         HashMap<String, String> resultAttributes = new HashMap<>();

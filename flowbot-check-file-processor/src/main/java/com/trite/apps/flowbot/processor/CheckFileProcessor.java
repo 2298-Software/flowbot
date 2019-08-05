@@ -6,7 +6,6 @@ import com.trite.apps.flowbot.result.Result;
 
 import java.io.File;
 import java.util.HashMap;
-import java.util.List;
 
 public class CheckFileProcessor extends Processor {
     private String path;
@@ -19,11 +18,11 @@ public class CheckFileProcessor extends Processor {
         this.setDesiredOutcome(processorAttribues.get("desiredOutcome"));
     }
 
-    public String getPath() {
+    private String getPath() {
         return path;
     }
 
-    public void setPath(String path) {
+    private void setPath(String path) {
         this.path = path;
     }
 
@@ -36,7 +35,7 @@ public class CheckFileProcessor extends Processor {
     }
 
     @Override
-    public Result run(String stepName, Result[] stuff) {
+    public Result run(String stepName, Result[] flowResults) {
         logger.info("running " + this.getClass().getSimpleName());
         BooleanResult r = new BooleanResult();
         HashMap<String, String> resultAttributes = new HashMap<>();
@@ -76,11 +75,11 @@ public class CheckFileProcessor extends Processor {
     }
 
 
-    public String getDesiredOutcome() {
+    private String getDesiredOutcome() {
         return desiredOutcome;
     }
 
-    public void setDesiredOutcome(String desiredOutcome) {
+    private void setDesiredOutcome(String desiredOutcome) {
         this.desiredOutcome = desiredOutcome;
     }
 }

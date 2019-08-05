@@ -5,7 +5,7 @@ import com.trite.apps.flowbot.result.Result;
 import java.util.HashMap;
 import org.apache.log4j.Logger;
 
-public class Processor{
+public class Processor implements Runnable{
     public Logger logger = Logger.getLogger(this.getClass().getName());
 
     private String name;
@@ -42,7 +42,7 @@ public class Processor{
         this.processorAttribues = processorAttribues;
     }
 
-    public Result run(String stepName, Result[] stuff) {
+    public Result run(String stepName, Result[] flowResults) {
         logger.info("running " + this.getClass().getSimpleName());
         return r;
     }

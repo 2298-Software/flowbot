@@ -34,7 +34,7 @@ public class CommandProcessor extends Processor {
         this.result = result;
     }
 
-    public HashMapResult run(String stepName, Result[] stuff) {
+    public HashMapResult run(String stepName, Result[] flowResults) {
         logger.info("running " + this.getClass().getSimpleName());
         HashMap<String, String> result = new HashMap<>();
         HashMap<String, String> resultAttributes = new HashMap<>();
