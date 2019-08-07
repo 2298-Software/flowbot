@@ -17,6 +17,8 @@
         <module>flowbot-download-file-processor</module>
         <module>flowbot-processor-core</module>
         <module>flowbot-s3-connector</module>
+        <module>flowbot-device-fingerprint-processor</module>
+        <module>flowbot-http-processor</module>
     </modules>
 
     <build>
@@ -41,7 +43,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <mainClass>com.trite.apps.flowbot.Controller</mainClass>
+                    <mainClass>com.trite.apps.flowbot.ControllerLauncher</mainClass>
                     <arguments>
                         <argument>src/main/resources/meetup.properties</argument>
                     </arguments>
@@ -65,7 +67,7 @@
                         <configuration>
                             <archive>
                                 <manifest>
-                                    <mainClass>com.trite.apps.flowbot.Controller</mainClass>
+                                    <mainClass>com.trite.apps.flowbot.ControllerLauncher</mainClass>
                                 </manifest>
                             </archive>
                             <descriptorRefs>

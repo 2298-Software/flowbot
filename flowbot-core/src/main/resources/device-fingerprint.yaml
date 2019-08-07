@@ -1,0 +1,12 @@
+name: "Test User"
+description: "30"
+start: "deviceFingerprint"
+steps:
+- name: "deviceFingerprint"
+  description: "Grab the device fingerprint"
+  processorAttributes:
+    type: "DeviceFingerprintProcessor"
+    description: "processor to create lock file"
+    interfaceName: "wlan0"
+  on_success: "end"
+  on_failure: "error"

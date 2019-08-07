@@ -8,7 +8,7 @@ steps:
     type: "CheckFileProcessor"
     description: "check file existence"
     path: "flowbot-core/src/main/resources/firstBoot.lock"
-    desiredOutcome: "not-exist"
+    desiredOutcome: "not-exists"
   on_success: "downloadPackage"
   on_failure: "end"
 - name: "downloadPackage"

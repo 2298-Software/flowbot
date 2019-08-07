@@ -1,0 +1,6 @@
+controllerMaxThreads: 1
+controllerLoopThrottleMills: 5000
+controllerLoopBackoffMills: 3000
+metricsReportingURL: "test"
+metricsReportingScheduleMills: 30000
+confDir: "flowbot-core/src/test/resources/one-conf"
