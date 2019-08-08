@@ -47,9 +47,10 @@ public class DeviceFingerprintProcessor extends Processor {
 
 
         try {
-            DeviceFingerprint df = new DeviceFingerprint(this.getInterfaceName(), System.getProperty("os.name"), new Date());
+            DeviceFingerprint df = new DeviceFingerprint(this.getInterfaceName());
 
             logger.info("mac is: " + df.getMac());
+            logger.info("os_name is: " + df.getOs_name());
             logger.info("os_version is: " + df.getOs_version());
             logger.info("epoch is: " + df.getEpoch());
 
@@ -65,6 +66,8 @@ public class DeviceFingerprintProcessor extends Processor {
 
         r.setResult(result.getResult());
         r.setResultAttributes(resultAttributes);
+        logger.info("finished " + this.getClass().getSimpleName());
+
         return r;
     }
 

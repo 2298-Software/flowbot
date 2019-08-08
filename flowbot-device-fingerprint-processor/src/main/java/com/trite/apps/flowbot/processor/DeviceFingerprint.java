@@ -8,13 +8,15 @@ import java.util.Date;
  */
 public class DeviceFingerprint {
     String mac;
+    String os_name;
     String os_version;
     Long epoch;
 
-    public DeviceFingerprint(String interface_name, String os_version, Date d) throws SocketException {
-        this.mac = getMacAddress(interface_name);
-        this.os_version = os_version;
-        this.epoch = d.getTime();
+    public DeviceFingerprint(String interface_name) throws SocketException {
+        this.setMac(getMacAddress(interface_name));
+        this.setOs_name(System.getProperty("os.name"));
+        this.setOs_version(System.getProperty("os.version"));
+        this.setEpoch(new Date().getTime());
     }
 
     public String getMac() {
@@ -23,6 +25,14 @@ public class DeviceFingerprint {
 
     public void setMac(String mac) {
         this.mac = mac;
+    }
+
+    public String getOs_name() {
+        return os_name;
+    }
+
+    public void setOs_name(String os_name) {
+        this.os_name = os_name;
     }
 
     public String getOs_version() {

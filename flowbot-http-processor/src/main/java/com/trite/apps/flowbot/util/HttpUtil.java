@@ -1,9 +1,12 @@
 package com.trite.apps.flowbot.util;
 
+import org.apache.log4j.Logger;
+
 import javax.net.ssl.HttpsURLConnection;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
@@ -11,7 +14,10 @@ import java.net.URL;
  * Created by joe on 8/7/2019.
  */
 public class HttpUtil {
+    public Logger logger = Logger.getLogger(this.getClass().getName());
+
     String url;
+    String payload;
 
     public String getUrl() {
         return url;
@@ -19,6 +25,14 @@ public class HttpUtil {
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    public String getPayload() {
+        return payload;
+    }
+
+    public void setPayload(String payload) {
+        this.payload = payload;
     }
 
     // HTTP GET request
@@ -52,7 +66,7 @@ public class HttpUtil {
     }
 
     // HTTP POST request
-    public boolean sendPost() throws Exception {
+    public String sendPost() throws Exception {
         URL obj = new URL(url);
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();
 
@@ -60,35 +74,36 @@ public class HttpUtil {
         con.setRequestMethod("POST");
         //con.setRequestProperty("User-Agent", USER_AGENT);
         con.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
+        con.setRequestProperty("Content-Type", "application/json; utf-8");
+        con.setRequestProperty("Accept", "application/json");
 
-        String urlParameters = "sn=C02G8416DRJM&cn=&locale=&caller=&num=12345";
 
         // Send post request
         con.setDoOutput(true);
-        DataOutputStream wr = new DataOutputStream(con.getOutputStream());
-        wr.writeBytes(urlParameters);
-        wr.flush();
-        wr.close();
 
-        int responseCode = con.getResponseCode();
-        System.out.println("\nSending 'POST' request to URL : " + url);
-        System.out.println("Post parameters : " + urlParameters);
-        System.out.println("Response Code : " + responseCode);
+        logger.info("\nSending 'POST' request to URL : " + url);
 
-        BufferedReader in = new BufferedReader(
-                new InputStreamReader(con.getInputStream()));
-        String inputLine;
-        StringBuffer response = new StringBuffer();
-
-        while ((inputLine = in.readLine()) != null) {
-            response.append(inputLine);
+        try(OutputStream os = con.getOutputStream()) {
+            byte[] input = this.getPayload().getBytes("utf-8");
+            os.write(input, 0, input.length);
         }
-        in.close();
+        int responseCode = con.getResponseCode();
+        logger.info("Response Code : " + responseCode);
 
-        //print result
-        System.out.println(response.toString());
+        StringBuilder response = new StringBuilder();
 
-        return responseCode == 200;
+        try(BufferedReader br = new BufferedReader(new InputStreamReader(con.getInputStream(), "utf-8"))) {
+            String responseLine = null;
+            while ((responseLine = br.readLine()) != null) {
+                response.append(responseLine.trim());
+            }
+        }
+
+
+        logger.info("Response : " + response.toString());
+
+
+        return response.toString();
 
     }
 }

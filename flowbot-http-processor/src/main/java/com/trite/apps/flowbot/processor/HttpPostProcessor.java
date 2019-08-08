@@ -2,6 +2,8 @@ package com.trite.apps.flowbot.processor;
 
 import com.trite.apps.flowbot.processorcore.Processor;
 import com.trite.apps.flowbot.result.BooleanResult;
+import com.trite.apps.flowbot.result.HashMapResult;
+import com.trite.apps.flowbot.result.JsonResult;
 import com.trite.apps.flowbot.result.Result;
 import com.trite.apps.flowbot.util.HttpUtil;
 
@@ -13,10 +15,12 @@ import java.util.HashMap;
 public class HttpPostProcessor extends Processor {
     private String url ;
     private String result;
+    private String payload;
 
     public HttpPostProcessor(HashMap<String, String> processorAttribues) {
         super(processorAttribues);
         this.setUrl(processorAttribues.get("url"));
+        this.setPayload(processorAttribues.get("payload"));
     }
 
     public String getUrl() {
@@ -27,6 +31,14 @@ public class HttpPostProcessor extends Processor {
         this.url = url;
     }
 
+    public String getPayload() {
+        return payload;
+    }
+
+    public void setPayload(String payload) {
+        this.payload = payload;
+    }
+
     public String getResult() {
         return result;
     }
@@ -35,35 +47,26 @@ public class HttpPostProcessor extends Processor {
         this.result = result;
     }
 
-    public BooleanResult run(String stepName, Result[] flowResults) {
+    public JsonResult run(String stepName, Result[] flowResults) {
         logger.info("running " + this.getClass().getSimpleName());
-        BooleanResult r = new BooleanResult();
+        JsonResult r = new JsonResult();
         HashMap<String, String> resultAttributes = new HashMap<>();
-        Boolean result;
+        JsonResult result = new JsonResult();
 
         try {
 
             HttpUtil hu = new HttpUtil();
             hu.setUrl(this.getUrl());
-            result = hu.sendPost();
-
-            if(result){
-                result = true;
-                resultAttributes.put(stepName + "-outcome", "success");
-            } else {
-                result = false;
-                resultAttributes.put(stepName + "-outcome", "failure");
-                resultAttributes.put(stepName + "-outcome-message", "Unable to post to: " + this.getUrl());
-            }
-
+            hu.setPayload(this.getPayload());
+            result.setResult(hu.sendPost());
+            resultAttributes.put(stepName + "-outcome", "success");
         }
         catch (Exception e) {
-            result = false;
             resultAttributes.put(stepName + "-outcome", "failure");
             resultAttributes.put(stepName + "-outcome-message", e.getMessage());
         }
 
-        r.setResult(result);
+        r.setResult(result.getResult());
         r.setResultAttributes(resultAttributes);
         return r;
     }

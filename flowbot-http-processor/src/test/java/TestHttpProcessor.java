@@ -8,6 +8,7 @@ import java.net.InetSocketAddress;
 
 import com.trite.apps.flowbot.processor.HttpGetProcessor;
 import com.trite.apps.flowbot.processor.HttpPostProcessor;
+import com.trite.apps.flowbot.result.JsonResult;
 import com.trite.apps.flowbot.result.Result;
 import org.junit.After;
 import org.junit.Before;
@@ -17,6 +18,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -31,7 +33,7 @@ public class TestHttpProcessor {
 
         httpServer.createContext("/api/endpoint", new HttpHandler() {
             public void handle(HttpExchange exchange) throws IOException {
-                byte[] response = "{\"success\": true}".getBytes();
+                byte[] response = exchange.getRequestBody().toString().getBytes();
                 exchange.sendResponseHeaders(HttpURLConnection.HTTP_OK, response.length);
                 exchange.getResponseBody().write(response);
                 exchange.close();
@@ -74,4 +76,21 @@ public class TestHttpProcessor {
 
         assertTrue(stepSuccess);
     }
+
+    @Test
+    public void TestHttpPostJson()  {
+        Result results[] = new Result[1];
+        String jsonInputString = "{\"name\": \"joe\", \"job\": \"software engineer\"}";
+        HashMap<String, String> processorAttributes = new HashMap<>();
+        processorAttributes.put("url", "http://localhost:8000/api/endpoint");
+        processorAttributes.put("payload", jsonInputString);
+        HttpPostProcessor p = new HttpPostProcessor(processorAttributes);
+        JsonResult r = p.run("test", results);
+
+        Boolean stepSuccess = r.getResultAttributes().get("test-outcome").equals("success");
+        String jsonResult = r.getResult();
+
+        assertTrue(stepSuccess);
+        assertEquals(jsonInputString, jsonResult);
+}
 }
