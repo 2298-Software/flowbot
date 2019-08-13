@@ -19,7 +19,7 @@
         <module>flowbot-s3-connector</module>
         <module>flowbot-device-fingerprint-processor</module>
         <module>flowbot-http-processor</module>
-        <module>flowbot-homebase-client</module>
+        <module>flowbot-homebase-client-processor</module>
     </modules>
 
     <build>

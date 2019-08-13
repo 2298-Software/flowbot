@@ -1,20 +1,23 @@
 package com.trite.apps.flowbot.processor;
 
-import com.trite.apps.flowbot.exception.FbaInvalidReponseCodeException;
+import com.trite.apps.flowbot.exception.*;
 import com.trite.apps.flowbot.processorcore.Processor;
 import com.trite.apps.flowbot.result.BooleanResult;
 import com.trite.apps.flowbot.result.Result;
 import com.trite.apps.flowbot.util.Encryption;
 import com.trite.apps.flowbot.util.HttpUtil;
 import com.trite.apps.flowbot.util.NetworkUtil;
+import com.trite.apps.flowbot.util.Util;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.compress.utils.IOUtils;
+import org.apache.log4j.Logger;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileOutputStream;
+import java.io.*;
+import java.net.ConnectException;
+import java.net.MalformedURLException;
+import java.net.SocketException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -23,10 +26,10 @@ import java.util.Date;
 import java.util.HashMap;
 
 public class ProvisionProcessor extends Processor {
-    private String hbUrl ;
+    private Logger logger = Logger.getLogger(this.getClass().getName());
+    private String hbUrl;
     private String hbFbaGetEp;
     private String hbFbaPostEp;
-    private String hbPcreqEp;
     private String hbPcrepEp;
     private String firstBootLockFilePath;
     private boolean firstBoot;
@@ -36,7 +39,8 @@ public class ProvisionProcessor extends Processor {
     private String epoch;
     private String fbaB64encodedValue;
     private String interfaceName;
-    private String appPath;
+    private String downloadPath;
+    private File tarball;
 
     public String getHbUrl() {
         return hbUrl;
@@ -44,14 +48,6 @@ public class ProvisionProcessor extends Processor {
 
     public void setHbUrl(String hbUrl) {
         this.hbUrl = hbUrl;
-    }
-
-    public String getHbPcreqEp() {
-        return hbPcreqEp;
-    }
-
-    public void setHbPcreqEp(String hbPcreq) {
-        this.hbPcreqEp = hbPcreq;
     }
 
     public String getHbPcrepEp() {
@@ -142,135 +138,209 @@ public class ProvisionProcessor extends Processor {
         this.interfaceName = interfaceName;
     }
 
-    public String getAppPath() {
-        return appPath;
+    public String getDownloadPath() {
+        return downloadPath;
     }
 
-    public void setAppPath(String appPath) {
-        this.appPath = appPath;
+    public void setDownloadPath(String downloadPath) {
+        this.downloadPath = downloadPath;
     }
+
+    public File getTarball() {
+        return tarball;
+    }
+
+    public void setTarball(File tarball) {
+        this.tarball = tarball;
+    }
+
+    private HashMap<String, String> resultAttributes = new HashMap<>();
 
     public ProvisionProcessor(HashMap<String, String> processorAttribues) {
         super(processorAttribues);
         this.hbUrl = processorAttribues.get("hbUrl");
         this.hbFbaGetEp = processorAttribues.get("hbFbaGetEp");
         this.hbFbaPostEp = processorAttribues.get("hbFbaPostEp");
-        this.hbPcreqEp = processorAttribues.get("hbPcreqEp");
         this.hbPcrepEp = processorAttribues.get("hbPcrepEp");
         this.interfaceName = processorAttribues.get("interfaceName");
         this.firstBootLockFilePath = processorAttribues.get("firstBootLockFilePath");
-        this.appPath = processorAttribues.get("appPath");
-
+        this.downloadPath = processorAttribues.get("downloadPath");
     }
 
-    public BooleanResult run(String stepName, Result[] flowResults) {
+    public BooleanResult run(String stepName, Result[] flowResults) throws Exception {
         logger.info("running " + this.getClass().getSimpleName());
-        BooleanResult r = new BooleanResult();
-        HashMap<String, String> resultAttributes = new HashMap<>();
-        Boolean result;
+
+        // Check for first boot lock file
+        resultAttributes.put("step-1-start", "check-first-boot-lock");
+        File fbLock = new File(this.firstBootLockFilePath);
+        HttpUtil hu = new HttpUtil();
 
         try {
-
-            // Check for first boot lock file
-            File fbLock = new File(this.firstBootLockFilePath);
-            if(!fbLock.exists()){
-                firstBoot = true;
+            if (fbLock.exists()) {
+                throw new FirstBootLockFileExistsException("Unable to continue, the first boot lock file already exists");
             }
+        } catch (Exception e) {
+            throw new FirstBootLockFileExistsException("Unable to continue due to: " + Util.getStackTraceString(e));
+        }
 
+
+        try {
             // Send get to fba endpoint
-            HttpUtil hu = new HttpUtil();
+            resultAttributes.put("step-2", "send-get-to-fba-endpoint-start");
+            logger.info("running step-2,send-get-to-fba-endpoint-start");
             hu.setUrl(this.getHbUrl() + this.getHbFbaGetEp());
             hu.getFba();
+            resultAttributes.put("step-2", "send-get-to-fba-endpoint-end");
+        } catch (Exception e) {
+            throw new FirstBootAnnouncementException("Unable to complete first boot announcement due to: " + Util.getStackTraceString(e));
+        }
 
-            /** prepare fba payload */
-            this.setMac(NetworkUtil.getMacAddress(this.interfaceName));
-            this.setOsInfo(System.getProperty("os.name") + " " + System.getProperty("os.version"));
 
-            Date d = new Date();
-            this.setEpoch(Long.toString(d.getTime()));
+        // prepare fba payload
+        resultAttributes.put("step-3", "prepare-fba-payload-start");
+        String fbaPayload;
+        try {
+            fbaPayload = getFbaMessage();
+        } catch (Exception e) {
+            throw new GenerateFbaPayloadException("Unable to generate fba payload due to " + Util.getStackTraceString(e));
+        }
+        resultAttributes.put("step-3", "prepare-fba-payload-end");
 
-            this.setDeviceSerialNumber("561465165161");
-
-            String fbaPayloadValue = String.format("{" +
-                                        "\"macAddress\":\"%s\"," +
-                                        "\"osInfo\":\"%s\"," +
-                                        "\"epochTime\":\"%s\"," +
-                                        "}",  this.getMac(), this.getOsInfo(), this.getEpoch());
-
-            logger.info("fbaPayloadValue: " + fbaPayloadValue);
-
-            String fbaPayloadB64 = java.util.Base64.getEncoder().encode(fbaPayloadValue.getBytes()).toString();
-            logger.info("fbaPayloadB64: " + fbaPayloadB64);
-
-            String fbaPayload = String.format("{\"key\":\"%s\", \"value\":\"{%s}\"}", this.getDeviceSerialNumber(), fbaPayloadB64);
-            logger.info("fbaPayload: " + fbaPayload);
-
-            // send get to Fba endpoint
+        // send get to Fba endpoint
+        final String secretKey;
+        resultAttributes.put("step-4", "send-fba-payload-start");
+        try {
             hu.setUrl(this.getHbUrl() + this.getHbFbaPostEp());
             hu.setPayload(fbaPayload);
-            final String secretKey = hu.postFba();
+            secretKey = hu.postFba();
             logger.info("secretKey: " + secretKey);
+        } catch (Exception e) {
+            throw new PostFbaPayloadException("Unable to generate fba payload due to " + Util.getStackTraceString(e));
+        }
+        resultAttributes.put("step-4", "send-fba-payload-end");
 
-            // get encrypted payload on client side
+        // get encrypted payload on client side
+        resultAttributes.put("step-5", "encrypt-fba-payload-start");
+        String clientEncryptedPayload = Encryption.encrypt(fbaPayload, secretKey);
+        logger.info("encryptedPayload: " + clientEncryptedPayload);
+        resultAttributes.put("step-5", "encrypt-fba-payload-end");
 
-            String clientEncryptedPayload = Encryption.encrypt(fbaPayload, secretKey);
-            logger.info("encryptedPayload: " + clientEncryptedPayload);
+        // pass encrypted payload to homebase api
+        resultAttributes.put("step-6", "send-encrypted-fba-payload-challenge-start");
+        String downloadUrl = getDownloadUrl(hu, clientEncryptedPayload);
+        resultAttributes.put("step-6", "send-encrypted-fba-payload-challenge-end");
 
-            // pass encrypted payload to homebase api
-            hu.setUrl(this.getHbUrl() + this.getHbPcreqEp());
-            hu.setPayload(clientEncryptedPayload);
-            String downloadUrl = hu.sendPcrep();
+        //download the tarball to app path
+        resultAttributes.put("step-7", "download-tarball-start");
+        if (!downloadTarball(downloadUrl)) {
+            throw new Exception("tarball file does not exist");
+        }
+        resultAttributes.put("step-7", "download-tarball-end");
 
-            //download the tarball to app path
+        //expand the tarball
+        resultAttributes.put("step-8", "extract-tarball-start");
+        expandTheTarball();
+        resultAttributes.put("step-8", "extract-tarball-end");
+
+        //remove the downloaded file
+        resultAttributes.put("step-9", "delete-tarball-start");
+        cleanUpTempFiles();
+        resultAttributes.put("step-9", "delete-tarball-end");
+
+        resultAttributes.put("step-10", "create-lock-file-start");
+        fbLock.createNewFile();
+        resultAttributes.put("step-10", "create-lock-file-end");
+
+        resultAttributes.put("end", "flow-completed");
+
+        return new BooleanResult();
+}
+
+    private void cleanUpTempFiles() {
+        tarball = new File(this.downloadPath);
+        tarball.delete();
+    }
+
+    private String getDownloadUrl(HttpUtil hu, String clientEncryptedPayload) throws Exception {
+        hu.setUrl(this.getHbUrl() + this.getHbPcrepEp());
+        hu.setPayload(clientEncryptedPayload);
+        return hu.sendPcrep();
+    }
+
+    private boolean downloadTarball(String downloadUrl) {
+        try {
             BufferedInputStream in = new BufferedInputStream(new URL(downloadUrl).openStream());
-            FileOutputStream fileOutputStream = new FileOutputStream(appPath);
+            FileOutputStream fileOutputStream = new FileOutputStream(downloadPath);
             byte dataBuffer[] = new byte[1024];
             int bytesRead;
             while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
                 fileOutputStream.write(dataBuffer, 0, bytesRead);
             }
+            in.close();
+            fileOutputStream.close();
 
-            //expand the tarball
-            Path pathInput = Paths.get(this.appPath);
-
-            TarArchiveInputStream tararchiveinputstream = new TarArchiveInputStream(new GzipCompressorInputStream(new BufferedInputStream( Files.newInputStream(pathInput))));
-
-            TarArchiveEntry entry;
-            while ((entry = tararchiveinputstream.getNextTarEntry()) != null) {
-                if (entry.isDirectory()) {
-                    continue;
-                }
-                File curfile = new File(appPath, entry.getName());
-                File parent = curfile.getParentFile();
-                if (!parent.exists()) {
-                    parent.mkdirs();
-                }
-                IOUtils.copy(tararchiveinputstream, new FileOutputStream(curfile));
-            }
-
-
-            tararchiveinputstream.close();
-
-            result = true;
-            if(result){
-                result = true;
-                resultAttributes.put(stepName + "-outcome", "success");
-            } else {
-                result = false;
-                resultAttributes.put(stepName + "-outcome", "failure");
-                resultAttributes.put(stepName + "-outcome-message", "Unable to post to: " + this.getHbUrl());
-            }
-
+            tarball = new File(this.downloadPath);
+            return tarball.exists();
+        } catch (ConnectException ce) {
+            resultAttributes.put("step-7-outcome", "failure");
+            resultAttributes.put("step-7-message", Util.getStackTraceString(ce));
+            return false;
+        } catch (MalformedURLException me) {
+            resultAttributes.put("step-7-outcome", "failure");
+            resultAttributes.put("step-7-message", Util.getStackTraceString(me));
+            return false;
+        } catch (IOException ie) {
+            resultAttributes.put("step-7-outcome", "failure");
+            resultAttributes.put("step-7-message", Util.getStackTraceString(ie));
+            return false;
         }
-        catch (Exception e) {
-            result = false;
-            resultAttributes.put(stepName + "-outcome", "failure");
-            resultAttributes.put(stepName + "-outcome-message", e.getMessage());
+    }
+
+    private void expandTheTarball() throws IOException {
+        Path pathInput = Paths.get(this.downloadPath);
+        Path pathOutput = pathInput.getParent();
+
+        TarArchiveInputStream tararchiveinputstream = new TarArchiveInputStream(new GzipCompressorInputStream(new BufferedInputStream(Files.newInputStream(pathInput))));
+
+        TarArchiveEntry entry;
+        while ((entry = tararchiveinputstream.getNextTarEntry()) != null) {
+            if (entry.isDirectory()) {
+                continue;
+            }
+            File curfile = new File(pathOutput.toAbsolutePath().toString(), entry.getName());
+            File parent = curfile.getParentFile();
+            if (!parent.exists()) {
+                parent.mkdirs();
+            }
+            IOUtils.copy(tararchiveinputstream, new FileOutputStream(curfile));
         }
 
-        r.setResult(result);
-        r.setResultAttributes(resultAttributes);
-        return r;
+        tararchiveinputstream.close();
+    }
+
+    private String getFbaMessage() throws SocketException {
+        this.setMac(NetworkUtil.getMacAddress(this.interfaceName));
+        this.setOsInfo(System.getProperty("os.name") + " " + System.getProperty("os.version"));
+
+        Date d = new Date();
+        this.setEpoch(Long.toString(d.getTime()));
+
+        this.setDeviceSerialNumber("561465165161");
+
+        String fbaPayloadValue = String.format("{" +
+                "\"macAddress\":\"%s\"," +
+                "\"osInfo\":\"%s\"," +
+                "\"epochTime\":\"%s\"," +
+                "}", this.getMac(), this.getOsInfo(), this.getEpoch());
+
+        logger.info("fbaPayloadValue: " + fbaPayloadValue);
+
+        String fbaPayloadB64 = java.util.Base64.getEncoder().encode(fbaPayloadValue.getBytes()).toString();
+        logger.info("fbaPayloadB64: " + fbaPayloadB64);
+
+        String fbaPayload = String.format("{\"key\":\"%s\", \"value\":\"{%s}\"}", this.getDeviceSerialNumber(), fbaPayloadB64);
+        logger.info("fbaPayload: " + fbaPayload);
+        return fbaPayload;
     }
 
 

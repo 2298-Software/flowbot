@@ -42,7 +42,7 @@ public class Processor implements Runnable{
         this.processorAttribues = processorAttribues;
     }
 
-    public Result run(String stepName, Result[] flowResults) {
+    public Result run(String stepName, Result[] flowResults) throws Exception {
         logger.info("running " + this.getClass().getSimpleName());
         return r;
     }
