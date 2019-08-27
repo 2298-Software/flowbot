@@ -4,22 +4,20 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.trite</groupId>
+    <groupId>com._2298software.apps</groupId>
     <artifactId>flowbot</artifactId>
     <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
     <modules>
+        <module>flowbot-core</module>
         <module>flowbot-create-fs-processor</module>
         <module>flowbot-command-processor</module>
         <module>flowbot-check-file-processor</module>
-        <module>flowbot-core</module>
         <module>flowbot-untar-processor</module>
         <module>flowbot-download-file-processor</module>
-        <module>flowbot-processor-core</module>
-        <module>flowbot-s3-connector</module>
+        <module>flowbot-s3connector</module>
         <module>flowbot-device-fingerprint-processor</module>
-        <module>flowbot-http-processor</module>
-        <module>flowbot-homebase-client-processor</module>
+        <module>flowbot-http-post-processor</module>
     </modules>
 
     <build>
@@ -44,10 +42,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <mainClass>com.trite.apps.flowbot.ControllerLauncher</mainClass>
-                    <arguments>
-                        <argument>src/main/resources/meetup.properties</argument>
-                    </arguments>
+                    <mainClass>com._2298software.apps.flowbot.ControllerLauncher</mainClass>
                     <systemProperties>
                         <systemProperty>
                             <key>myproperty</key>
@@ -68,7 +63,7 @@
                         <configuration>
                             <archive>
                                 <manifest>
-                                    <mainClass>com.trite.apps.flowbot.ControllerLauncher</mainClass>
+                                    <mainClass>com._2298software.apps.flowbot.ControllerLauncher</mainClass>
                                 </manifest>
                             </archive>
                             <descriptorRefs>

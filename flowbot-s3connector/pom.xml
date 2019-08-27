@@ -9,14 +9,19 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>flowbot-create-fs-processor</artifactId>
+    <artifactId>flowbot-s3connector</artifactId>
+
     <dependencies>
         <dependency>
             <groupId>com._2298software.apps</groupId>
             <artifactId>flowbot-core</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk-s3</artifactId>
+            <version>1.11.68</version>
+        </dependency>
     </dependencies>
-
 
 </project>

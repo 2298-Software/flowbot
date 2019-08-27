@@ -9,12 +9,18 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>flowbot-create-fs-processor</artifactId>
+    <artifactId>flowbot-http-post-processor</artifactId>
     <dependencies>
         <dependency>
             <groupId>com._2298software.apps</groupId>
             <artifactId>flowbot-core</artifactId>
             <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit-dep</artifactId>
+            <version>4.9</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

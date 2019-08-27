@@ -1,5 +1,6 @@
-import com.trite.apps.flowbot.processor.CheckFileProcessor;
-import com.trite.apps.flowbot.result.Result;
+import com._2298software.apps.flowbot.processor.CheckFileProcessor;
+
+import com._2298software.apps.flowbot.result.ProcessorResult;
 import org.junit.Test;
 
 import java.io.File;
@@ -14,24 +15,19 @@ public class TestCheckFileProcessor {
     public void TestFileExistsAndDesiredExists() throws IOException {
         File testFile = File.createTempFile("flowbot-test", ".txt");
 
-        Result results[] = new Result[1];
         HashMap<String, String> processorAttributes = new HashMap<>();
         processorAttributes.put("path", testFile.getAbsolutePath());
         processorAttributes.put("desiredOutcome", "exists");
 
         CheckFileProcessor p = new CheckFileProcessor(processorAttributes);
-        Result r = p.run("test", results);
-
-        Boolean stepSuccess = r.getResultAttributes().get("test-outcome").equals("success");
-
-        assertTrue(stepSuccess);
+        ProcessorResult pr = p.run();
+        assertTrue(pr.getResult());
     }
 
     @Test
     public void TestFileDoesNotExistsAndDesiredExists() throws IOException {
         File testFile = File.createTempFile("flowbot-test", ".txt");
 
-        Result results[] = new Result[1];
         HashMap<String, String> processorAttributes = new HashMap<>();
         processorAttributes.put("path", testFile.getAbsolutePath());
         processorAttributes.put("desiredOutcome", "exists");
@@ -40,28 +36,22 @@ public class TestCheckFileProcessor {
 
         //remove the file prior to run
         testFile.delete();
-        Result r = p.run("test", results);
 
-        Boolean stepSuccess = r.getResultAttributes().get("test-outcome").equals("success");
-
-        assertFalse(stepSuccess);
+        ProcessorResult pr = p.run();
+        assertFalse(pr.getResult());
     }
 
     @Test
     public void TestFileExistsAndDesiredNotExists() throws IOException {
         File testFile = File.createTempFile("flowbot-test", ".txt");
 
-        Result results[] = new Result[1];
         HashMap<String, String> processorAttributes = new HashMap<>();
         processorAttributes.put("path", testFile.getAbsolutePath());
         processorAttributes.put("desiredOutcome", "not-exists");
 
         CheckFileProcessor p = new CheckFileProcessor(processorAttributes);
-        Result r = p.run("test", results);
-
-        Boolean stepSuccess = r.getResultAttributes().get("test-outcome").equals("success");
-
-        assertFalse(stepSuccess);
+        ProcessorResult pr = p.run();
+        assertFalse(pr.getResult());
     }
 }
 
