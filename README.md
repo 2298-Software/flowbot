@@ -1,3 +1,3 @@
-#Flowbot
+# Flowbot
 
-Flowbot is a java-based workflow engine. 
+Flowbot is a java-based, modular workflow engine.
